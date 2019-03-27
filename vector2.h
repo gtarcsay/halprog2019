@@ -58,6 +58,12 @@ auto operator*( Vector2d<T> const& a, const T lambda)
 };
 
 template<typename T>
+auto operator*(const T lambda, Vector2d<T> const& a)
+{
+    return Vector2d<T>{ a.x*lambda, a.y*lambda};
+};
+
+template<typename T>
 auto operator/( Vector2d<T> const& a, const T lambda)
 {
     if(lambda != static_cast<T>(0)) {
@@ -74,7 +80,7 @@ auto operator/( Vector2d<T> const& a, const T lambda)
 template<typename T>
 auto dot( Vector2d<T> const& a, Vector2d<T> const& b)
 {
-    return a.x*b.x+a.y+b.y;
+    return a.x*b.x+a.y*b.y;
     
 };
 
@@ -93,14 +99,16 @@ auto length(Vector2d<T> const& a)
 template<typename T>
 auto normalize(Vector2d<T> const& a)
 {
-    double L = length(a);
+    T L = length(a);
     return Vector2d<T>{a.x/L, a.y/L};
 };
 
 template<typename T>
 auto rotate(Vector2d<T> const& a, const T phi)
 {   
-    return Vector2d<T>{a.x*std::cos(phi) - a.y*std::sin(phi), a.x*std::sin(phi) + a.y*std::cos(phi)};
+    T cphi = std::cos(phi);
+    T sphi = std::sin(phi);
+    return Vector2d<T>{a.x*cphi - a.y*sphi, a.x*sphi + a.y*cphi};
 };
 
 
