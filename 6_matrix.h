@@ -289,7 +289,7 @@ auto operator*( Matrix2<T> const& m, const T lambda)
 }
 
 template<typename T>
-auto operator*( Matrix2<T>&& m, const T lambda)
+Matrix2<T>&& operator*( Matrix2<T>&& m, const T lambda)
 {
 	std::transform(m.cbegin(), m.cend(), m.begin(),
                [lambda](auto const& c){return c*lambda;});
@@ -306,7 +306,7 @@ auto operator*(const T lambda, Matrix2<T> const& m)
 }
 
 template<typename T>
-auto operator*(const T lambda, Matrix2<T>&& m)
+Matrix2<T>&& operator*(const T lambda, Matrix2<T>&& m)
 {
 	//std::transform(m.cbegin(), m.cend(), result.begin(),
              //  std::bind1st(std::multiplies<T>(), lambda));
@@ -327,7 +327,7 @@ auto operator/( Matrix2<T> const& m, const T lambda)
 };
 
 template<typename T>
-auto operator/( Matrix2<T>&& m, const T lambda)
+Matrix2<T>&& operator/( Matrix2<T>&& m, const T lambda)
 {
 	std::transform(m.cbegin(), m.cend(), m.begin(),
                [lambda](auto const& c){return c/lambda;});
@@ -365,7 +365,7 @@ auto operator*( Matrix2<T> const& m1, Matrix2<T> const& m2)
 
 // RL multiplication
 template<typename T>
-auto operator*(Matrix2<T>&& m1, Matrix2<T> const& m2)
+Matrix2<T>&& operator*(Matrix2<T>&& m1, Matrix2<T> const& m2)
 {
 	int i, j,k, m;
 	int size_n1 = m1.dim();	//result matrix: N1×M2
@@ -402,7 +402,7 @@ auto operator*(Matrix2<T>&& m1, Matrix2<T> const& m2)
 
 //LR multiplication
 template<typename T>
-auto operator*(Matrix2<T> const& m1, Matrix2<T>&& m2)
+Matrix2<T>&& operator*(Matrix2<T> const& m1, Matrix2<T>&& m2)
 {
 	int i, j,k, m;
 	int size_n1 = m1.dim();	//result matrix: N1×M2
@@ -434,7 +434,7 @@ auto operator*(Matrix2<T> const& m1, Matrix2<T>&& m2)
 
 //RR multiplication	
 template<typename T>
-auto operator*(Matrix2<T>&& m1, Matrix2<T>&& m2)
+Matrix2<T>&& operator*(Matrix2<T>&& m1, Matrix2<T>&& m2)
 {
 	int i, j,k, m;
 	int size_n1 = m1.dim();	//result matrix: N1×M2
