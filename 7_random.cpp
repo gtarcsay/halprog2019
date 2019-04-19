@@ -1,5 +1,5 @@
 #include <iostream>
-#include "matrix.h"
+#include "6_matrix.h"
 #include <random>
 #include <chrono>
 #include <fstream>
