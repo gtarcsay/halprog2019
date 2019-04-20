@@ -1,3 +1,7 @@
+/*csúcsok: 192×192
+            90×90
+            64×64
+*/
 #include <iostream>
 #include "matrix.h"
 #include <random>
@@ -30,7 +34,7 @@ int main(int, char**) {
           auto t_start = std::chrono::high_resolution_clock::now();
           Matrix2<double> m3 = m1*m2;
           auto t_stop = std::chrono::high_resolution_clock::now();
-          temp[l] = std::chrono::duration_cast<std::chrono::microseconds>(t_stop-t_start).count();
+          temp[l] = (static_cast<std::chrono::duration<double, std::micro>>(t_stop-t_start)).count();
           }
         auto t_min = std::min_element(temp.begin(), temp.end());
 
@@ -39,8 +43,7 @@ int main(int, char**) {
         m++;
     }
 
-std::ofstream myfile;
-  myfile.open ("time.txt");
+std::ofstream myfile("time.txt");
   for(int i=0;i < time.size(); i++){
     myfile << N3[i] << "\t" << time[i] << std::endl;
   }  
