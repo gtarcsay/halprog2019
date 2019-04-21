@@ -1,9 +1,6 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
-#include <functional>
-
-
 
 auto add = [](auto const& x, auto const& y){ return x + y; };
 auto sub = [](auto const& x, auto const& y){ return x - y; };
@@ -122,11 +119,12 @@ public:
 	}
 
 	
-	//template <typename T>
-	//auto push_back(std::vector<T>const& temp)
-	//{
-		//data.push_back(std::move(temp));
-	//}
+	  auto set_size(int size)
+    {	
+				if(data.size() != 0){return *this;}
+        data.resize(size);
+				return *this;
+    }
 
 	auto operator+=( Matrix2<T> const& m)
     {
@@ -182,26 +180,37 @@ std::ostream& operator<<(std::ostream& o, Matrix2<T>const& m)
 template<typename T>
 std::istream& operator>>(std::istream& i, Matrix2<T>& m)
 {
-		int dim = m.dim();
-		if(m.size() < 0){std::cout <<"Matrix is not defined!" <<std::endl; std::exit(-1);}
-
-		for(int n =0; n<dim; n++ )
-		{
-			const auto state = i.rdstate();
-			const auto pos = i.tellg();
-			for(int j =0; j<dim; j++)
+	T value;
+	std::vector<T> temp;
+	const auto state = i.rdstate();
+	const auto pos = i.tellg();
+	while(i >> value)
+	{
+		temp.push_back(value);
+		if(i.fail() == 1 )
 			{
-				i >> m(n,j);
-				if(i.fail() == 1 )
-				{
 				i.seekg(pos);
 				i.setstate(state);
-				}
+				return i;
 			}
-		
-		}
+	}
+	auto dim = std::sqrt(temp.size());
+	// is the dimension an integer? If yes -> matrix is quadratic
+	if(abs(ceil(dim) - floor(dim)) > 1e-14)
+	{
+		i.seekg(pos);
+		i.setstate(state);
 		return i;
 	}
+	for(int k=0; k < static_cast<int>(dim*dim) ;k++ )
+	{
+			m[k] = temp[k];
+	}
+		
+		return i;
+	}
+	
+	
 
 
 // + operators
@@ -365,7 +374,7 @@ auto operator*( Matrix2<T> const& m1, Matrix2<T> const& m2)
 
 // RL multiplication
 template<typename T>
-Matrix2<T>&& operator*(Matrix2<T>&& m1, Matrix2<T> const& m2)
+auto operator*(Matrix2<T>&& m1, Matrix2<T> const& m2)
 {
 	int i, j,k, m;
 	int size_n1 = m1.dim();	//result matrix: N1×M2
