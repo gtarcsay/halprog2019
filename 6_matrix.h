@@ -182,10 +182,11 @@ std::istream& operator>>(std::istream& i, Matrix2<T>& m)
 {
 	T value;
 	std::vector<T> temp;
-	const auto state = i.rdstate();
-	const auto pos = i.tellg();
+
 	while(i >> value)
 	{
+		const auto state = i.rdstate();
+		const auto pos = i.tellg();
 		temp.push_back(value);
 		if(i.fail() == 1 )
 			{
