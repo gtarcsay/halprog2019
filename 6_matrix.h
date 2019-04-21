@@ -203,7 +203,8 @@ std::istream& operator>>(std::istream& i, Matrix2<T>& m)
 		i.setstate(state);
 		return i;
 	}
-	for(int k=0; k < static_cast<int>(dim*dim) ;k++ )
+	m.set_size(static_cast<int>(dim));
+	for(int k=0; k < dim*dim ;k++ )
 	{
 			m[k] = temp[k];
 	}
