@@ -38,7 +38,11 @@ public:
     //Default, Copy and Move constructors implemented by the compiler:
 	Matrix2() = default;
 	Matrix2( Matrix2 const& ) = default;
-	Matrix2( Matrix2 && ) = default;
+  Matrix2( Matrix2 && m):   data{std::move(m.data)}, 
+                            N{m.N}                     
+    {
+        m.N = 0; 
+    }
 	
 	//Copy and Move assignment operators implemented by the compiler:
 	Matrix2<T>& operator=(Matrix2 const&) = default;
@@ -55,6 +59,18 @@ public:
 		for(int i = 0; i<Nsq;i++)
 		{			
 				data[i] = 0;	
+		}
+	}
+
+		Matrix2(int dim, std::vector<T> v)
+	{
+		if(dim < 0 ){std::cout << "Matrix size cannot be negative integer!\n"; std::exit(-1);}
+		int Nsq = dim*dim;
+		N = dim;
+		data.resize(Nsq);
+		for(int i = 0; i<Nsq;i++)
+		{			
+				data[i] = v[i];	
 		}
 	}
 
@@ -118,13 +134,6 @@ public:
 		return data.cend();
 	}
 
-	
-	  auto set_size(int size)
-    {	
-				if(data.size() != 0){return *this;}
-        data.resize(size);
-				return *this;
-    }
 
 	auto operator+=( Matrix2<T> const& m)
     {
@@ -168,7 +177,7 @@ std::ostream& operator<<(std::ostream& o, Matrix2<T>const& m)
 		{
 			for(int j =0; j<dim;j++)
 			{
-				o << m(i,j) << " ";
+				o << static_cast<T>(m(i,j)) << " ";
 			}
 			o << "\n";
 			
@@ -182,33 +191,29 @@ std::istream& operator>>(std::istream& i, Matrix2<T>& m)
 {
 	T value;
 	std::vector<T> temp;
+	const auto state = i.rdstate();
+	const auto pos = i.tellg();
 
 	while(i >> value)
 	{
-		const auto state = i.rdstate();
-		const auto pos = i.tellg();
 		temp.push_back(value);
-		if(i.fail() == 1 )
+
+	}
+			if(i)
 			{
 				i.seekg(pos);
 				i.setstate(state);
 				return i;
 			}
-	}
 	auto dim = std::sqrt(temp.size());
 	// is the dimension an integer? If yes -> matrix is quadratic
-	if(abs(ceil(dim) - floor(dim)) > 1e-14)
+	if(std::abs(std::ceil(dim) - std::floor(dim)) > 1e-14)
 	{
 		i.seekg(pos);
 		i.setstate(state);
 		return i;
 	}
-	m.set_size(static_cast<int>(dim));
-	for(int k=0; k < dim*dim ;k++ )
-	{
-			m[k] = temp[k];
-	}
-		
+	m = Matrix2<T> (2,temp);	
 		return i;
 	}
 	
