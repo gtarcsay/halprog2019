@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <string>
 #include "6_matrix.h"
 #include "6_vector2.h"
 
@@ -43,16 +44,40 @@ std::vector<double> mref = {0.0, 6.0, 14.0, 24.0};
 testm(m1, mref, "Error in matrix.h: constructor(int,int, f)\n");
 }
 
-//test << and >> for matrix
+//test move operator and indexing
+
+	{
+		Matrix2<double> m1(2,{3.2, 17.4, 5.5, 19.7});
+		Matrix2<double> m2{ std::move(m1) };
+        Matrix2<double> mref(2,{3.2, 17.4, 5.5, 19.7});
+
+		if(m1.size() != 0)  { std::cout <<"Error in matrix.h: move constructor, size\n"; std::exit(-1);}
+		if(m1.dim() != 0)   {  std::cout <<"Error in matrix.h: move constructor, dim\n"; std::exit(-1);}
+		if(m2.size() != 4)  { std::cout <<"Error in matrix.h: move constructor, size\n"; std::exit(-1);}
+		if(m2.dim() != 2)   {  std::cout <<"Error in matrix.h: move constructor, dim\n"; std::exit(-1);}
+        testm(mref, m2, "Error in matrix.h: move operator, elements\n");
+    }
+
+//test << operator for matrix
 {
-Matrix2<double> m_in(2,{3.0, 17.0, 5.0, 19.0});
-Matrix2<double> m_out(2);
-Matrix2<double> mref(2,{3.0, 17.0, 5.0, 19.0});
+Matrix2<double> m_in(2,{3.2, 17.4, 5.5, 19.7});
+
+std::string str_ref = "3.2 17.4 \n5.5 19.7 \n";
 std::stringstream ss;
 ss << m_in;
-ss >> m_out;
+std::string str = ss.str();
+if(str != str_ref){std::cout<<"Error in matrix.h: << operator test\n" ;}
+}
 
-testm(m_out, mref, "Error in matrix.h: out << operator\n");
+//test >>operator for matrix
+{
+    Matrix2<double> m_in;
+    Matrix2<double> m_ref(2,{3.2, 17.4, 5.5, 19.7});
+    std::stringstream ss;
+    ss << "3.2 17.4 \n5.5 19.7 \n";
+    ss >> m_in;
+    testm(m_ref, m_in, "Error in matrix.h : >> operator test \n");
+
 }
 
 //test << and >> for vectors
