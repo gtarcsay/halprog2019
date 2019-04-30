@@ -213,7 +213,7 @@ std::istream& operator>>(std::istream& i, Matrix2<T>& m)
 		i.setstate(state);
 		return i;
 	}
-	m = Matrix2<T> (2,temp);	
+	m = Matrix2<T> (dim,temp);	
 		return i;
 	}
 	
