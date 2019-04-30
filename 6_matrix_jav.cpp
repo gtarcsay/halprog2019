@@ -158,6 +158,8 @@ Matrix2<double> m2(2,{2.0, 13.0, 11.0, 7.0});
 Matrix2<double> m3 = std::move(m1) + m2;
 Matrix2<double> mref(2,{5.0, 30.0, 16.0, 26.0});
 testm(m3, mref, "Error in matrix.h: + operation (RL-values)\n");
+if(m1.size() != 0) { error("Error in matrix.h: operator + test (RL) size");     }
+if(m1.dim() != 0) { error("Error in matrix.h: operator + test (RL) dim");     }
 }
 
 //LR
@@ -167,6 +169,8 @@ Matrix2<double> m2(2,{2.0, 13.0, 11.0, 7.0});
 Matrix2<double> m3 = m1 + std::move(m2);
 Matrix2<double> mref(2,{5.0, 30.0, 16.0, 26.0});
 testm(m3, mref, "Error in matrix.h: + operation (LR-values)\n");
+if(m2.size() != 0) { error("Error in matrix.h: operator + test (LR) size");     }
+if(m2.dim() != 0) { error("Error in matrix.h: operator + test (LR) dim");     }
 }
 
 //RR
@@ -176,6 +180,8 @@ Matrix2<double> m2(2,{2.0, 13.0, 11.0, 7.0});
 Matrix2<double> m3 = std::move(m1) + std::move(m2);
 Matrix2<double> mref(2,{5.0, 30.0, 16.0, 26.0});
 testm(m3, mref, "Error in matrix.h: + operation (RR-values)\n");
+if(m1.size() != 0 && m2.size() != 0) { error("Error in matrix.h: operator + test (RR) size");     }
+if(m1.dim() != 0 && m2.dim() != 0) { error("Error in matrix.h: operator + test (RR) dim");     }	
 }
 
 
@@ -197,6 +203,8 @@ Matrix2<double> m2(2,{2.0, 13.0, 11.0, 7.0});
 Matrix2<double> m3 = std::move(m1)-m2;
 Matrix2<double> mref(2,{1.0, 4.0, -6.0, 11.0});
 testm(m3, mref, "Error in matrix.h: - operation (RL-values)\n");
+if(m1.size() != 0) { error("Error in matrix.h: operator - test (RL) size");     }
+if(m1.dim() != 0) { error("Error in matrix.h: operator - test (RL) dim");     }
 }
 
 //LR
@@ -206,6 +214,8 @@ Matrix2<double> m2(2,{2.0, 13.0, 11.0, 7.0});
 Matrix2<double> m3 = m1-std::move(m2);
 Matrix2<double> mref(2,{1.0, 4.0, -6.0, 11.0});
 testm(m3, mref, "Error in matrix.h: - operation (LR-values)\n");
+if(m2.size() != 0) { error("Error in matrix.h: operator - test (LR) size");     }
+if(m2.dim() != 0) { error("Error in matrix.h: operator - test (LR) dim");     }
 }
 
 //RR
@@ -215,6 +225,8 @@ Matrix2<double> m2(2,{2.0, 13.0, 11.0, 7.0});
 Matrix2<double> m3 = std::move(m1)-std::move(m2);
 Matrix2<double> mref(2,{1.0, 4.0, -6.0, 11.0});
 testm(m3, mref, "Error in matrix.h: - operation (RR-values)\n");
+if(m1.size() != 0 && m2.size() != 0) { error("Error in matrix.h: operator - test (RR) size");     }
+if(m1.dim() != 0 && m2.dim() != 0) { error("Error in matrix.h: operator - test (RR) dim");     }
 }
 
 
@@ -236,6 +248,8 @@ double lambda = 3.2;
 Matrix2<double> mres = std::move(m1)*lambda;
 Matrix2<double> mref(2,{9.6, 54.4, 16.0, 60.8});
 testm(mres, mref, "Error in matrix.h: * operation (from right) with R value reference.\n");
+if(m1.size() != 0) { error("Error in matrix.h: operator * test  size");     }
+if(m1.dim() != 0) { error("Error in matrix.h: operator * test  dim");     }
 }
 
 //multiplying from left
@@ -254,6 +268,8 @@ double lambda = 3.2;
 Matrix2<double> mres = lambda*std::move(m1);
 Matrix2<double> mref(2,{9.6, 54.4, 16.0, 60.8});
 testm(mres, mref, "Error in matrix.h: * operation (from left) with R value reference.\n");
+if(m1.size() != 0) { error("Error in matrix.h: operator *left test  size");     }
+if(m1.dim() != 0) { error("Error in matrix.h: operator *left test  dim");     }
 }
 
 //test matrix/scalar
@@ -272,6 +288,8 @@ double lambda = 2.0;
 Matrix2<double> mres = std::move(m1)/lambda;
 Matrix2<double> mref(2,{1.5, 8.5 , 2.5, 9.5});
 testm(mres, mref, "Error in matrix.h: / operation \n");
+if(m1.size() != 0) { error("Error in matrix.h: operator / test  size");     }
+if(m1.dim() != 0) { error("Error in matrix.h: operator / test  dim");     }
 }
 
 //matrix multiplication
@@ -291,6 +309,8 @@ Matrix2<double> m2(2,{2.0, 13.0, 11.0, 7.0});
 Matrix2<double> m3 = m1*std::move(m2);
 Matrix2<double> mref(2,{193.0, 158.0, 219.0, 198.0});
 testm(m3, mref, "Error in matrix.h: matrix multiplication, LR values.\n");
+if(m2.size() != 0) { error("Error in matrix.h: operator * (LR) test  size");     }
+if(m2.dim() != 0) { error("Error in matrix.h: operator *(LR) test  dim");     }
 }
 
 //RL values
@@ -301,6 +321,8 @@ Matrix2<double> m3 = std::move(m1)*m2;
 Matrix2<double> mref(2,{193.0, 158.0, 219.0, 198.0});
 //std::cout << m3(0,0) << "\t" << m3(0,1) << "\n" << m3(1,0) << "\t" << m3(1,1)<< std::endl;
 testm(m3, mref, "Error in matrix.h: matrix multiplication, RL values.\n");
+if(m1.size() != 0) { error("Error in matrix.h: operator * (RL) test  size");     }
+if(m1.dim() != 0) { error("Error in matrix.h: operator *(RL) test  dim");     }
 }
 
 //RR values
@@ -310,6 +332,8 @@ Matrix2<double> m2(2,{2.0, 13.0, 11.0, 7.0});
 Matrix2<double> m3 = std::move(m1)*std::move(m2);
 Matrix2<double> mref(2,{193.0, 158.0, 219.0, 198.0});
 testm(m3, mref, "Error in matrix.h: matrix multiplication, RL values.\n");
+if(m2.size() != 0 && m1.size() != 0) { error("Error in matrix.h: operator * (RR) test  size");     }
+if(m2.dim() != 0 && m1.dim() != 0) { error("Error in matrix.h: operator *(RR) test  dim");     }
 }
 
 
