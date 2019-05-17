@@ -2,13 +2,14 @@
 #include <cmath>
 #include <algorithm>
 #include <functional>
+#include <chrono>
+#include <thread>
+#include <future>
 
 
 
 auto add = [](auto const& x, auto const& y){ return x + y; };
 auto sub = [](auto const& x, auto const& y){ return x - y; };
-auto mult = [](auto const& x, auto const& y){return x*y};
-
 
 // 2×2-es nagy mátrixok osztálya
 //N*N = vektor mérete -> class kell legyen a matrix2, mert ez egy megszorítás
@@ -19,7 +20,7 @@ class Matrix2{
 private:
   std::vector<T>data;	// -> ezeket inicializálni kell minden konstruktorban
 	int N;				//  N = sqrt(data.size()) -> ez rossz, ha a felhasználó pl. 7-et ír be
-	int M;				// helyette: data, N private-ba megy, utána a public: konstruktorok
+						// helyette: data, N private-ba megy, utána a public: konstruktorok
 						// felhasználó mondja meg a mátrix lineáris méretét, utána kezdjük a konstruálást, aztán
 						//megnézzük, hogy ehhez megfelelő számú elemet adott-e meg a default konstruktorban -> 
 						//konstruktor vár egy méretet és egy lambdát
@@ -51,13 +52,13 @@ public:
   
 
 	//Construct 0 matrix from size
-	Matrix2(int row, int column)
+	Matrix2(int dim)
 	{
-		if(row < 0 || column < 0){std::cout << "Matrix size cannot be negative integer!\n"; std::exit(-1);}
-		N = row;
-		M = column;
-		data.resize(N*M);
-		for(int i = 0; i<N*M;i++)
+		if(dim < 0 ){std::cout << "Matrix size cannot be negative integer!\n"; std::exit(-1);}
+		int Nsq = dim*dim;
+		N = dim;
+		data.resize(Nsq);
+		for(int i = 0; i<Nsq;i++)
 		{			
 				data[i] = 0;	
 		}
@@ -65,28 +66,27 @@ public:
 
 		//Construct matrix with a function
 	template <typename F>
-	Matrix2(int row, int column, F f)
+	Matrix2(int dim, F f)
 	{
-		if(row < 0 || column < 0){std::cout << "Matrix size cannot be negative integer!\n"; std::exit(-1);}
-		N = row;
-		M = column;
-		data.resize(N*M);
-		for(int i = 0; i<N*M;i++)
+		if(dim < 0 ){std::cout << "Matrix size cannot be negative integer!\n"; std::exit(-1);}
+		N = dim;
+		int Nsq = dim*dim;
+		data.resize(Nsq);
+		for(int i = 0; i<Nsq;i++)
 		{			
 				data[i] = f(i);	
 		}
 	}
 
 	//Construct from initializer list:
-	Matrix2(int row, int column,  std::initializer_list<T> const& il ) 
+	Matrix2(int dim, std::initializer_list<T> const& il ) 
 	{
-		if(row < 0 || column < 0){std::cout << "Matrix size cannot be negative integer!\n"; std::exit(-1);}
-		if(row*column != il.size()){
+		if(dim < 0 ){std::cout << "Matrix size cannot be negative integer!\n"; std::exit(-1);}
+		if(dim*dim != il.size()){
 			std::cout << "Matrix size and number of initalizer list's elements do not match!\n";
 			std::exit(-1);
 			}
-		N = row;
-		M = column;
+		N = dim;
 		data = il;		
 	}
 
@@ -97,15 +97,12 @@ public:
         return static_cast<int>(data.size());
     }
 
-	int row()const
+	int dim()const
 	{
 		return static_cast<int>(N);
 	}
 
-	int column()const
-	{
-		return static_cast<int>(N);
-	}
+	
 
 	auto begin()
 	{
@@ -127,93 +124,73 @@ public:
 		return data.cend();
 	}
 
-	auto get_data() const
-	{
-		return data;
-	}
-
-	auto get_N() const
-	{
-		return N;
-	}
-
-	auto set_N(int n) 
-	{
-		N = n;
-	}
-
-	auto get_M() const
-	{
-		return M;
-	}
-
-	auto set_M(int m) 
-	{
-		M = m;
-	}
-
-	auto resize(int n)
-	{
-		data.resize(n);
-	}
-
-	auto insert1(std::vector<T> val)
-	{
-		data.insert(data.end(), val.begin(), val.end());
-	}
-
-	auto insert2(std::vector<T> val, T i, T column1)
-	{
-		data.insert(data.begin()+column1*i, val.begin(), val.end());
-	}
-
-	auto erase(T i, T column1)
-	{
 	
-		data.erase(data.begin()+column1*i, data.begin()+column1*(i+1));
-	}
 
-	
-	//template <typename T>
-	//auto push_back(std::vector<T>const& temp)
-	//{
-		//data.push_back(std::move(temp));
-	//}
 
 	auto operator+=( Matrix2<T> const& m)
     {
-		for(int i=0; i < data.size(); i++)
-        data[i] += m[i];
-        
+		std::transform(data.cbegin(), data.cend(), m.cbegin(),data.begin(),  add);        
         return *this;
     };
 
+
 		auto operator-=( Matrix2<T> const& m)
     {
-		for(int i=0; i < data.size(); i++)
-        data[i] -= m[i];
-        
-        return *this;
+		std::transform(data.cbegin(), data.cend(), m.cbegin(),data.begin(),  sub);
+
+     return *this;
     };
 
 		auto operator*=( T lambda)
     {
-		for(int i=0; i < data.size(); i++)
-        data[i] *= lambda;
+		std::transform(data.cbegin(), data.cend(), data.begin(),
+               [lambda](auto const& c){return c*lambda;});
         
         return *this;
     };
 
 		auto operator/=( T lambda)
     {
-		for(int i=0; i < data.size(); i++)
-        data[i] /= lambda;
+		std::transform(data.cbegin(), data.cend(), data.begin(),
+               [lambda](auto const& c){return c/lambda;});
         
         return *this;
     };
 
     
 };
+
+	template<typename T>
+std::ostream& operator<<(std::ostream& o, Matrix2<T>const& m)
+	{
+		int dim = m.dim();
+		for(int i =0; i<dim; i++ )
+		{
+			for(int j =0; j<dim;j++)
+			{
+				o << m(i,j) << " ";
+			}
+			o << "\n";
+			
+		}
+		return o;
+	}
+
+		template<typename T>
+std::istream& operator>>(std::istream& i, Matrix2<T>const& m)
+	{
+		int dim = m.dim();
+		for(int i =0; i<dim; i++ )
+		{
+			for(int j =0; j<dim;j++)
+			{
+				o << m(i,j) << " ";
+			}
+			o << "\n";
+			
+		}
+		return o;
+	}
 
 
 // + operators
@@ -222,9 +199,9 @@ public:
 template<typename T>
 Matrix2<T> operator+( Matrix2<T> const& m1, Matrix2<T> const& m2 )
 {
-	if(m1.size() <= 0 || m2.size() <= 0){std::cout<<"Matrices must be initialized for the + operation!\n"; std::exit(-1);}
+	if(m1.size() < 0 || m2.size() < 0){std::cout<<"Matrix size cannot be negative integer!\n"; std::exit(-1);}
 	if(m1.size()!=m2.size()){std::cout << "Size of matrices do not match! \n"; std::exit(-1);}
-	Matrix2<T> result(m1.get_N(), m1.get_M()); 
+	Matrix2<T> result(m1.dim()); 
 	std::transform(m1.cbegin(), m1.cend(), m2.cbegin(), result.begin(), add);
 	return result;
 }
@@ -234,7 +211,7 @@ template<typename T>
 Matrix2<T>&& operator+(Matrix2<T>&& m1, Matrix2<T> const& m2 )
 {
 	std::transform(m1.cbegin(), m1.cend(), m2.cbegin(),m1.begin(),  add);
-	return std::move(m1);
+	return std::(m1);
 }
 
 // LR values
@@ -258,9 +235,9 @@ Matrix2<T>&& operator+( Matrix2<T>&& m1, Matrix2<T>&& m2 )
 template<typename T>
 Matrix2<T> operator-( Matrix2<T> const& m1, Matrix2<T> const& m2 )
 {
-	if(m1.size() <= 0 || m2.size() <= 0){std::cout<<"Matrices must be initialized for the + operation!\n"; std::exit(-1);}
+	if(m1.size() < 0 || m2.size() < 0){std::cout<<"Matrix size cannot be negative integer!\n"; std::exit(-1);}
 	if(m1.size()!=m2.size()){std::cout << "Size of matrices do not match! \n"; std::exit(-1);}
-	Matrix2<T> result(m1.get_N(), m1.get_M()); 
+	Matrix2<T> result(m1.dim()); 
 	std::transform(m1.cbegin(), m1.cend(), m2.cbegin(), result.begin(), sub);
 	return result;
 }
@@ -294,44 +271,47 @@ Matrix2<T>&& operator-( Matrix2<T>&& m1, Matrix2<T>&& m2 )
 template<typename T>
 auto operator*( Matrix2<T> const& m, const T lambda)
 {
-	Matrix2<T> result(m.get_N(), m.get_M()); 
+	Matrix2<T> result(m.dim()); 
 	std::transform(m.cbegin(), m.cend(), result.begin(),
-               std::bind1st(std::multiplies<T>(), lambda));
+               [lambda](auto const& c){return c*lambda;});
 	return result;
-};
+}
 
 template<typename T>
 auto operator*( Matrix2<T>&& m, const T lambda)
 {
 	std::transform(m.cbegin(), m.cend(), m.begin(),
-               std::bind1st(std::multiplies<T>(), lambda));
-	return m;
-};
+               [lambda](auto const& c){return c*lambda;});
+	return std::move(m);
+}
 
 template<typename T>
 auto operator*(const T lambda, Matrix2<T> const& m)
 {
-	Matrix2<T> result(m.get_N(), m.get_M());
+	Matrix2<T> result(m.dim());
 	std::transform(m.cbegin(), m.cend(), result.begin(),
-               std::bind1st(std::multiplies<T>(), lambda));
+               [lambda](auto const& c){return c*lambda;});
 	return result;
-};
+}
 
 template<typename T>
 auto operator*(const T lambda, Matrix2<T>&& m)
 {
+	//std::transform(m.cbegin(), m.cend(), result.begin(),
+             //  std::bind1st(std::multiplies<T>(), lambda));
 	std::transform(m.cbegin(), m.cend(), m.begin(),
-               std::bind1st(std::multiplies<T>(), lambda));
-	return m;
-};
+              [lambda](auto const& c){return lambda*c;});
+
+	return std::move(m);
+}
 
 // / operator
 template<typename T>
 auto operator/( Matrix2<T> const& m, const T lambda)
 {
-	Matrix2<T> result(m.get_N(), m.get_M()); 
+	Matrix2<T> result(m.dim()); 
 	std::transform(m.cbegin(), m.cend(), result.begin(),
-               std::bind1st(std::multiplies<T>(), 1/lambda));
+               [lambda](auto const& c){return c/lambda;});
 	return result;
 };
 
@@ -339,101 +319,179 @@ template<typename T>
 auto operator/( Matrix2<T>&& m, const T lambda)
 {
 	std::transform(m.cbegin(), m.cend(), m.begin(),
-               std::bind1st(std::multiplies<T>(), 1/lambda));
-	return m;
-};
+               [lambda](auto const& c){return c/lambda;});
+	return std::move(m);
+}
 
 //matrix multiplication
 
 template<typename T>
-auto mul( Matrix2<T> const& m1, Matrix2<T> const& m2)
+auto operator*( Matrix2<T> const& m1, Matrix2<T> const& m2)
 {
 	int i, j,k;
-	int row1 = m1.get_N();	//result matrix: N1×M2
-	int column1 = m1.get_M();
-	int row2 = m2.get_N();
-	int column2 = m2.get_M();
-	if(column1 != row2 || column2 != row1){std::cout<< "Matrix sizes do not match! \n"; std::exit(-1);}
-	Matrix2<T> result;
-
-	for(i = 0; i < row1; ++i)
+	int size_n1 = m1.dim();	//result matrix: N×N
+	int size_n2 = m2.dim();
+	if(size_n1 != size_n2){std::cout<< "Matrix sizes do not match! \n"; std::exit(-1);}
+	Matrix2<T> result(size_n1);
+	T sum = 0.0;
+	for(i = 0; i < size_n1; ++i)
 	{	
-		std::vector<T> temp;
-		temp.resize(column2);
-		for(j = 0; j < column2; ++j)
+		for(j = 0; j < size_n1; ++j)
 		{
-			for(k=0; k<column1; ++k)
+			sum = 0.0;
+			for(k=0; k<size_n1; ++k)
 			{
-				temp[j] += m1(i,k) * m2(k,j);
+				sum += m1(i,k) * m2(k,j);
 			}
+			result(i,j) = sum;
+			
 		}
-		result.insert1(temp);
-		//result.get_data().insert(result.end(), temp.begin(), temp.end());
 		
 	}
 	return result;
     
-};
+}
 
 // RL multiplication
 template<typename T>
-auto mul(Matrix2<T>&& m1, Matrix2<T> const& m2)
+auto operator*(Matrix2<T>&& m1, Matrix2<T> const& m2)
 {
-	int i, j,k;
-	int row1 = m1.get_N();	//result matrix: N1×M2
-	int column1 = m1.get_M();
-	int row2 = m2.get_N();
-	int column2 = m2.get_M();
+	int i, j,k, m;
+	int size_n1 = m1.dim();	//result matrix: N1×M2
+	int size_n2 = m2.dim();
+	if(size_n1 != size_n2){std::cout<< "Matrix sizes do not match! \n"; std::exit(-1);}
+	std::vector<T> temp;
+	temp.resize(size_n1);
+	T sum = 0.0;
 
-	if(column1 != row2 || column2 != row1){std::cout<< "Matrix sizes do not match! \n"; std::exit(-1);}
-
-
-	for(i = 0; i < row1; ++i)
+	for(i = 0; i < size_n1; ++i)
 	{	
-		std::vector<T> temp;
-		temp.resize(column2);
-		for(j = 0; j < column2; ++j)
+		for(j = 0; j < size_n2; ++j)
 		{
-			for(k=0; k<column1; ++k)
+			
+			sum = 0.0;
+			for(k=0; k<size_n1; ++k)
 			{
-				temp[j] += m1(i,k) * m2(k,j);
+				sum += m1(i,k) * m2(k,j);
 			}
+			temp[j] = sum;
 		}
-		m1.erase(i, column1);
-		m1.insert2(temp, i, column1);
+		for(m = 0;m< size_n1; ++m)
+		{
+			m1(i,m) = temp[m];
+		}
+		
+		
+		}
+
+		
+	
+	return std::move(m1);
+}
+
+//LR multiplication
+template<typename T>
+auto operator*(Matrix2<T> const& m1, Matrix2<T>&& m2)
+{
+	int i, j,k, m;
+	int size_n1 = m1.dim();	//result matrix: N1×M2
+	int size_n2 = m2.dim();
+	if(size_n1 != size_n2 ){std::cout<< "Matrix sizes do not match! \n"; std::exit(-1);}
+	std::vector<T> temp(size_n1);
+	T sum = 0.0;
+
+	for(i = 0; i < size_n1; ++i)
+	{	
+		
+		for(j = 0; j < size_n1; ++j)
+		{
+			sum = 0.0;
+			for(k=0; k<size_n1; ++k)
+			{
+				sum += m1(j,k) * m2(k,i);
+			}
+			temp[j] = sum;
+		}
+		for(m=0;m<size_n1;++m){
+			m2(m,i) = temp[m];
+		}
 		
 	}
-	return std::move(m1);
-};
+	return std::move(m2);
+    
+}
 
 //RR multiplication	
 template<typename T>
-auto mul(Matrix2<T>&& m1, Matrix2<T>&& m2)
+auto operator*(Matrix2<T>&& m1, Matrix2<T>&& m2)
 {
-	int i, j,k;
-	int row1 = m1.get_N();	//result matrix: N1×M2
-	int column1 = m1.get_M();
-	int row2 = m2.get_N();
-	int column2 = m2.get_M();
+	int i, j,k, m;
+	int size_n1 = m1.dim();	//result matrix: N1×M2
+	int size_n2 = m2.dim();
+	if(size_n1 != size_n2 ){std::cout<< "Matrix sizes do not match! \n"; std::exit(-1);}
+	std::vector<T> temp(size_n1);
+  T sum = 0.0;
 
-	if(column1 != row2 || column2 != row1){std::cout<< "Matrix sizes do not match! \n"; std::exit(-1);}
-
-
-	for(i = 0; i < row1; ++i)
+	for(i = 0; i < size_n1; ++i)
 	{	
-		std::vector<T> temp;
-		temp.resize(column2);
-		for(j = 0; j < column2; ++j)
+		
+		for(j = 0; j < size_n1; ++j)
 		{
-			for(k=0; k<column1; ++k)
+			sum = 0.0;
+			for(k=0; k<size_n1; ++k)
 			{
-				temp[j] += m1(i,k) * m2(k,j);
+				sum += m1(i,k) * m2(k,j);
 			}
+			temp[j] = sum;
 		}
-		m1.erase(i, column1);
-		m1.insert2(temp, i, column1);
+		for(m=0;m<size_n1;++m){
+			m1(i,m) = temp[m];
+		}
 		
 	}
 	return std::move(m1);
     
-};
+}
+
+//parallel product
+
+template<typename T>
+Matrix2<T> parallel_mul( Matrix2<T> const& m1, Matrix2<T> const& m2, int n_threads){
+	
+	if(m1.dim() != m2.dim()){std::cout<< "Matrix sizes do not match! \n"; std::exit(-1);}	
+	if(m1.dim() < 2){n_threads =1;}		//kis mátrixokra nincs szálasítás
+	if(n_threads > m1.dim()){n_threads = m1.dim();}	//ha túl sok szálat választunk
+	std::vector<std::future<Matrix2<T>>> fs(n_threads); //future-öknek
+	int N = std::floor(m1.dim()/n_threads); //egy szálon meddig fusson 
+	int t = 0;	// melyik szálon vagyunk épp 
+	int start,end;
+	Matrix2<T> result(m1.dim());
+	//lambda, amit minden szál megkap
+  auto mul = [m1, m2](Matrix2<T> result, int start, int end){ 
+		T sum = 0.0;
+		int i, j,k;
+		for (int i = start; i < end; i++)
+		{
+			for(j = 0; j < m1.dim(); ++j)
+			{
+				sum = 0.0;
+				for(k=0; k< m1.dim(); ++k)
+				{
+					sum += m1(i,k) * m2(k,j);
+				}
+				result(i,j) = sum;
+			}
+    }
+		return result;
+  };
+
+	for(t = 0; t< n_threads; t++)
+	{
+		start = N*t;
+		end = N*(t+1);
+		if(t == n_threads-1){end = m1.dim();}	//az utolsó szálon a végéig kell futni
+		fs[t] = std::async(std::launch::async, mul, std::ref(result), start, end);
+	}
+	std::for_each(fs.begin(), fs.end(), [&result](auto& fut){ result = result + fut.get(); });
+	return result;
+}
