@@ -87,7 +87,7 @@ if(str != str_ref){std::cout<<"Error in matrix.h: << operator test\n" ;}
     std::stringstream ss;
     ss << v_in;
     ss >> v_out;
-    if(abs(v_in.x - v_out.x) > 1e-14 || abs(v_in.y - v_out.y) > 1e-14 )
+    if(std::abs(v_in.x - v_out.x) > 1e-14 || std::abs(v_in.y - v_out.y) > 1e-14 )
     {std::cout<<"Error in 6_vector2.h: iostream.\n";}
 }
 
