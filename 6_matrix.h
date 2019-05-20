@@ -1,6 +1,9 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <chrono>
+#include <thread>
+#include <future>
 
 auto add = [](auto const& x, auto const& y){ return x + y; };
 auto sub = [](auto const& x, auto const& y){ return x - y; };
@@ -213,7 +216,7 @@ std::istream& operator>>(std::istream& i, Matrix2<T>& m)
 		i.setstate(state);
 		return i;
 	}
-	m = Matrix2<T> (dim,temp);	
+	m = Matrix2<T> (2,temp);	
 		return i;
 	}
 	
@@ -478,4 +481,47 @@ Matrix2<T>&& operator*(Matrix2<T>&& m1, Matrix2<T>&& m2)
 	}
 	return std::move(m1);
     
+}
+
+//parallel product
+
+template<typename T>
+Matrix2<T> parallel_mul( Matrix2<T> const& m1, Matrix2<T> const& m2, int n_threads){
+	
+	if(m1.dim() != m2.dim()){std::cout<< "Matrix sizes do not match! \n"; std::exit(-1);}	
+	if(m1.dim() < 2){n_threads =1;}		//kis mátrixokra nincs szálasítás
+	if(n_threads > m1.dim()){n_threads = m1.dim();}	//ha túl sok szálat választunk
+	std::vector<std::future<void>> fs(n_threads); //future-öknek
+	int N = static_cast<int>(std::floor(m1.dim()/n_threads)); //egy szálon meddig fusson 
+	int t = 0;	// melyik szálon vagyunk épp 
+	int start,end;
+	Matrix2<T> result(m1.dim());
+	//lambda, amit minden szál megkap
+  auto mul = [&m1, &m2](Matrix2<T>& result, int start, int end){ 
+		T sum = 0.0;
+		int i, j,k;
+		
+		for (i = start; i < end; i++)
+		{
+			for(j = 0; j < m1.dim(); ++j)
+			{
+				sum = 0.0;
+				for(k=0; k< m1.dim(); ++k)
+				{
+					sum += m1(i,k) * m2(k,j);
+				}
+				result(i,j) = sum;
+			}
+    }
+  };
+
+	for(t = 0; t< n_threads; t++)
+	{
+		start = N*t;
+		end = N*(t+1);
+		if(t == n_threads-1){end = m1.dim();}	//az utolsó szálon a végéig kell futni
+		fs[t] = std::async(std::launch::async, mul, std::ref(result), start, end);
+	}
+	std::for_each(fs.begin(), fs.end(), [](auto& fut){fut.get();});
+	return result;
 }
