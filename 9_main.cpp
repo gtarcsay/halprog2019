@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include "matrix.h"
+#include "6_matrix.h"
 
 auto fill = [](int i){return i;};
 
@@ -16,14 +16,13 @@ int main(int, char**) {
     auto time2 = std::chrono::high_resolution_clock::now();
     std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(time2-time1).count() << std::endl;
     std::vector<double> time(max_thread);
-
     for(int t = 1; t<max_thread + 1; t++)
     {
-        std::cout << "Run on " << t << "threads" << std::endl;
+        std::cout << "Run on " << t << " threads" << std::endl;
         auto time1 = std::chrono::high_resolution_clock::now();
         m3 =  parallel_mul(m1,m2,t); 
         auto time2 = std::chrono::high_resolution_clock::now();
-        time[t-1] = (std::chrono::duration_cast<std::chrono::milliseconds>(time2-time1).count());
+        time[t-1] = static_cast<double>(std::chrono::duration_cast<std::chrono::milliseconds>(time2-time1).count());
     }
 std::ofstream myfile;
   myfile.open ("time500.txt");
